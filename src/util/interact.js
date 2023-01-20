@@ -1,7 +1,16 @@
+import { Alchemy, Network } from "alchemy-sdk";
+
 require("dotenv").config();
+
 const alchemyKey = process.env.REACT_APP_ALCHEMY_KEY;
 const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
 const web3 = createAlchemyWeb3(alchemyKey);
+
+const config = {
+  apiKey: "uWYD-1cTpGQPGKCRCdU-X_lkHEgfC_FU",
+  network: Network.ETH_GOERLI,
+};
+const alchemy = new Alchemy(config);
 
 const contractABI = require("../contract-abi.json");
 const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
@@ -34,20 +43,90 @@ export const loadContractDecimals = async () => {
   return message;
 };
 
+export const loadContractBalance = async () => {
+  const message = await smartContract.methods.balanceOf(contractAddress).call();
+  return message;
+};
+
+export const loadContractStakedTokens = async () => {
+  const message = await smartContract.methods
+    .stakedTokens(contractAddress)
+    .call();
+  return message;
+};
+
 export const connectWallet = async () => {
   if (window.ethereum) {
     try {
       const addressArray = await window.ethereum.request({
         method: "eth_requestAccounts",
+        // method: "eth_getBalance",
       });
+
+      console.log(addressArray);
+
+      const balanceArray = await web3.eth.getBalance(addressArray[0]);
+
+      // const myTokens = await main(tokenArray);
+      // console.log(myTokens);
+
+      console.log("Wallet address - " + balanceArray);
+
+      // const main = async () => {
+      const balances = await alchemy.core.getTokenBalances(addressArray[0]);
+
+      // Remove tokens with zero balance
+
+      const nonZeroBalances = balances.tokenBalances.filter((token) => {
+        return token.tokenBalance !== "0";
+      });
+
+      console.log(nonZeroBalances);
+      const balance = nonZeroBalances[0].tokenBalance;
+      console.log(balance);
+      console.log(`Token balances of ${addressArray[0]} \n`);
+
+      let i = 1;
+
+      for (let token of nonZeroBalances) {
+        // Get balance of token
+        console.log(nonZeroBalances);
+        let balance = token.tokenBalance;
+
+        // Get metadata of token
+        const metadata = await alchemy.core.getTokenMetadata(
+          token.contractAddress
+        );
+
+        // Compute token balance in human-readable format
+        balance = balance / Math.pow(10, metadata.decimals);
+        balance = balance.toFixed(2);
+
+        const tokenInfo = `${metadata.name}: ${balance} ${metadata.symbol}`;
+
+        const tokenArray = `${i++}. ${metadata.name}: ${balance} ${
+          metadata.symbol
+        }`;
+
+        console.log(tokenArray);
+        console.log(tokenInfo);
+      }
+
       const obj = {
         status: "👆🏽 Write a message in the text-field above.",
         address: addressArray[0],
+        balanceArray: balanceArray,
+        nonZeroBalances: nonZeroBalances,
       };
+
+      console.log(obj);
+
       return obj;
+      // return balanceArray;
     } catch (err) {
       return {
         address: "",
+        balance: "",
         status: "😥 " + err.message,
       };
     }
@@ -78,9 +157,13 @@ export const connectWallet = async () => {
 export const getCurrentWalletConnected = async () => {
   if (window.ethereum) {
     try {
-      const addressArray = await window.ethereum.request({
-        method: "eth_accounts",
-      });
+      const addressArray = await window.ethereum
+        .request({
+          method: "eth_accounts",
+          // method: "eth_getBalance",
+        })
+        .then(console.log);
+
       if (addressArray.length > 0) {
         return {
           address: addressArray[0],
@@ -130,9 +213,24 @@ export const getAccountBalance = async (address) => {
     };
   }
 
-  const message = await smartContract.methods.balances(address).call();
+  const message = await smartContract.methods.balanceOf(address).call();
   return message;
 };
+
+export const getStakedTokens = async (address) => {
+  //input error handling
+  if (!window.ethereum || address === null) {
+    return {
+      status:
+        "💡 Connect your Metamask wallet to update the message on the blockchain.",
+    };
+  }
+
+  const message = await smartContract.methods.stakedTokens(address).call();
+
+  return message;
+};
+console.log(getStakedTokens);
 
 export const transferBalance = async (address, transferAddress, amount) => {
   //input error handling
@@ -163,7 +261,7 @@ export const transferBalance = async (address, transferAddress, amount) => {
           <a
             target="_blank"
             rel="noreferrer"
-            href={`https://ropsten.etherscan.io/tx/${txHash}`}
+            href={`https://goerli.etherscan.io/tx/${txHash}`}
           >
             View the status of your transaction on Etherscan!
           </a>
