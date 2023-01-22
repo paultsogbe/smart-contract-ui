@@ -1,143 +1,148 @@
-import React from "react";
-import { useEffect, useState } from "react";
-import { Alchemy, Network } from "alchemy-sdk";
-
+import { useState, useEffect } from "react";
+import { Accounts } from "web3-eth-accounts";
+import logo from "./logo.png";
 import {
+  loadContractBalance,
+  loadTokenName,
+  loadTokenSymbol,
+  loadTokenDecimals,
+  loadTokenTotalSupply,
   connectWallet,
-  getCurrentWalletConnected,
-  loadContractName,
-  loadContractSymbol,
-  loadContractTotalSupply,
-  loadContractDecimals,
   getAccountBalance,
   transferBalance,
-  getStakedTokens,
-  loadContractBalance,
-  loadContractStakedTokens,
-} from "./util/interact.js";
+  mintTokens,
+} from "./util/interact";
 
-import logo from "./logo.png";
+function SmartContract() {
+  // SMART CONGRACT INFORMATION
+  const [contractBalance, setContractBalance] = useState(
+    "No connection to the network."
+  );
+  const [tokenName, setTokenName] = useState("No connection to the network.");
+  const [tokenSymbol, setTokenSymbol] = useState(
+    "No connection to the network."
+  );
+  const [tokenDecimals, setTokenDecimals] = useState(
+    "No connection to the network."
+  );
+  const [tokenTotalSupply, setTokenTotalSupply] = useState(
+    "No connection to the network."
+  );
 
-const config = {
-  apiKey: "uWYD-1cTpGQPGKCRCdU-X_lkHEgfC_FU",
-  network: Network.ETH_GOERLI,
-};
-const alchemy = new Alchemy(config);
+  //   WALLET INFOMATION 🦊
+  const [walletAddress, setWalletAddress] = useState("");
+  const [walletStatus, setWalletStatus] = useState("");
+  const [walletBalance, setWalletBalance] = useState(" ");
+  const [tokenWalletBalance, setTokenWalletBalance] = useState(" ");
+  const [stakedWalletBalance, setStakedWalletBalance] = useState("");
 
-const SmartContract = () => {
-  //state variables
-  const [walletAddress, setWallet] = useState("");
-  const [walletBalance, setWalletBalance] = useState("");
-  const [status, setStatus] = useState("");
+  //   GET BALANCE OF ANY ADDRESS INFORMATION
   const [balanceAddress, setBalanceAddress] = useState("");
-  const [address, setAddress] = useState("");
-  const [balanceStatus, setBalanceStatus] = useState("");
-  const [tokenAddress, setTokenAddress] = useState("");
-  const [tokenStatus, setTokenStatus] = useState("");
-  const [transferAddress, setTransferAddress] = useState("");
-  const [transferAmount, setTransferAmount] = useState("");
-  const [transferStatus, setTransferStatus] = useState("");
-  const [walletTokens, setWalletTokens] = useState([]);
-  const [tokens, setTokens] = useState([]);
-  const [name, setName] = useState("No connection to the network."); //default message
-  const [symbol, setSymbol] = useState("No connection to the network."); //default message
-  const [totalSupply, setTotalSupply] = useState(
-    "No connection to the network."
-  ); //default message
-  const [decimals, setDecimals] = useState("No connection to the network."); //default message
-  const [balance, setBalance] = useState("No connection to the network."); //default message
-  const [stakedTokens, setStakedTokens] = useState(
-    "No connection to the network."
-  ); //default message
+  const [balanceStatus, setBalanceStatus] = useState();
 
-  //called only once
+  //   TRANSFER TOKEN INFORMATION
+  const [transferAddress, setTransferAddress] = useState("");
+  const [transferAmount, setTransferAmount] = useState();
+  const [transferStatus, setTransferStatus] = useState();
+
+  // Mint tokens information
+  const [mintAddress, setMintAddress] = useState("");
+  const [mintValue, setMintValue] = useState();
+  const [mintStatus, SetMintStatus] = useState();
+
+  //   Initializing all the functions
   useEffect(() => {
     async function setup() {
-      const name = await loadContractName();
-      setName(name);
+      const tokenName = await loadTokenName();
+      setTokenName(tokenName);
 
-      const symbol = await loadContractSymbol();
-      setSymbol(symbol);
+      const tokenSymbol = await loadTokenSymbol();
+      setTokenSymbol(tokenSymbol);
 
-      const totalSupply = await loadContractTotalSupply();
-      setTotalSupply(totalSupply);
+      const tokenDecimals = await loadTokenDecimals();
+      setTokenDecimals(tokenDecimals);
 
-      const decimals = await loadContractDecimals();
-      setDecimals(decimals);
+      const tokenTotalSupply = await loadTokenTotalSupply();
+      setTokenTotalSupply((tokenTotalSupply / Math.pow(10, 18)).toFixed(2));
 
-      const balance = await loadContractBalance();
-      setBalance(balance);
+      const contractBalance = await loadContractBalance();
+      setContractBalance((contractBalance / Math.pow(10, 21)).toFixed(5));
 
-      const staked = await loadContractStakedTokens();
-      setStakedTokens(stakedTokens);
+      // INISSIALISATION WALLET INFORMATION
+      const {
+        status,
+        address,
+        currentWalletBalance,
+        currentTokenBalance,
+        stakedTokenBalance,
+      } = await connectWallet();
 
-      const { address, status } = await getCurrentWalletConnected();
-
-      setWallet(address);
-
-      setStatus(status);
-
+      setWalletAddress(address);
+      setWalletStatus(status);
+      setWalletBalance((currentWalletBalance / Math.pow(10, 18)).toFixed(5));
+      setTokenWalletBalance(
+        (currentTokenBalance / Math.pow(10, 18)).toFixed(5)
+      );
+      setStakedWalletBalance(
+        (stakedTokenBalance / Math.pow(10, 18)).toFixed(5)
+      );
       addWalletListener();
+      connectWalletPressed();
+      //   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
     setup();
   }, []);
-
+  // INFORMATION FOR WALLETLISTENER(écout)
   function addWalletListener() {
     if (window.ethereum) {
       window.ethereum.on("accountsChanged", (accounts) => {
         if (accounts.length > 0) {
-          setWallet(accounts[0]);
-          setStatus("👆🏽 Populate the Data and Click on Button to execute...");
+          setWalletAddress(accounts[0]);
+          setWalletStatus("✅ Wallet is connected!");
+          setWalletBalance((accounts[0] / Math.pow(10, 18)).toFixed(5));
+          setTokenWalletBalance((accounts[0] / Math.pow(10, 18)).toFixed(5));
+          setStakedWalletBalance((accounts[0] / Math.pow(10, 18)).toFixed(5));
         } else {
-          setWallet("");
-          setStatus("🦊 Connect to Metamask using the top right button.");
+          setWalletStatus(
+            <span>
+              <p>
+                {" "}
+                🦊{" "}
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`https://metamask.io/download.html`}
+                >
+                  You must install Metamask, a virtual Ethereum wallet, in your
+                  browser.
+                </a>
+              </p>
+            </span>
+          );
         }
       });
-    } else {
-      setStatus(
-        <p>
-          {" "}
-          🦊{" "}
-          <a
-            target="_blank"
-            rel="noreferrer"
-            href={`https://metamask.io/download.html`}
-          >
-            You must install Metamask, a virtual Ethereum wallet, in your
-            browser.
-          </a>
-        </p>
-      );
     }
   }
-
+  // CETTE FONCTION VA ALLER CHERCHÉE DES INFORMATIONS DANS L'OBJET DE L'AUTRE COTÉ( PARTIE WALLET)
   const connectWalletPressed = async () => {
     const walletResponse = await connectWallet();
-    setStatus(walletResponse.status);
-    setWallet(walletResponse.address);
-    setWalletBalance(walletResponse.balanceArray);
-    setWalletTokens(walletResponse.nonZeroBalances);
-    console.log(walletResponse);
-    console.log(walletBalance);
-    console.log(walletTokens);
-    setAddress(balanceAddress);
-    // setWalletBalance(walletResponse.balanceArray);
 
-    // setBalanceAddress(walletResponse.balance);
+    setWalletAddress(walletResponse.address);
+    setWalletStatus(walletResponse.status);
+    setWalletBalance(
+      (walletResponse.currentWalletBalance / Math.pow(10, 18)).toFixed(5)
+    );
+    setTokenWalletBalance(
+      (walletResponse.currentTokenBalance / Math.pow(10, 18)).toFixed(5)
+    );
+    setStakedWalletBalance(
+      (walletResponse.stakedTokenBalance / Math.pow(10, 18)).toFixed(5)
+    );
   };
 
   const onGetBalancePressed = async () => {
-    const status = await getAccountBalance(balanceAddress);
-    setBalanceStatus(status);
-    // setAddress(balanceAddress);
-
-    // setWalletBalance(walletBalance);
-  };
-
-  // Token code
-  const onGetTokenPressed = async () => {
-    const status = await getStakedTokens(tokenAddress);
-    setTokenStatus(status);
+    const response = await getAccountBalance(balanceAddress);
+    setBalanceStatus(response);
   };
 
   const onTransferBalancePressed = async () => {
@@ -146,15 +151,21 @@ const SmartContract = () => {
       transferAddress,
       transferAmount
     );
+
     setTransferStatus(status);
   };
 
+  const OnMintTokensPressed = async () => {
+    const { mint } = await mintTokens(walletAddress, mintValue);
+    SetMintStatus(mint);
+  };
+
   return (
-    <div id="container">
-      <img id="logo" src={logo} alt="logo"></img>
-      <button id="walletButton" onClick={connectWalletPressed}>
+    <div className="container">
+      <img src={logo} alt="logo" className="logo" />
+      <button className="walletButton" onClick={connectWalletPressed}>
         {walletAddress.length > 0 ? (
-          "Connected: " +
+          "Connected" +
           String(walletAddress).substring(0, 6) +
           "..." +
           String(walletAddress).substring(38)
@@ -163,50 +174,54 @@ const SmartContract = () => {
         )}
       </button>
       <p style={{ paddingTop: "50px" }}>
-        <b>Token Name:</b> {name} &nbsp;&nbsp; <b>Token Symbol:</b> {symbol}
-        &nbsp;<b>Token Balance:</b>
-        {balance} ETH
+        <b>Token Name:</b> {tokenName}&nbsp;&nbsp;
+        <b>Token Symbol:</b> {tokenSymbol} &nbsp;&nbsp;
+        <b>Token Decimals:</b>
+        {tokenDecimals}
       </p>
 
       <p>
-        <b>Total Supply:</b> {totalSupply} &nbsp;&nbsp; <b>Decimals:</b>{" "}
-        {decimals} &nbsp; <b>Staked Tokens:</b> {stakedTokens}
+        <b> Total Supply:</b> {tokenTotalSupply} {tokenSymbol}&nbsp;&nbsp;
       </p>
-      <p id="status">{status}</p>
-      <h2 style={{ paddingTop: "5px" }}>Wallet information</h2>
+      <p>
+        <b>Smart Contract ETH Balance:</b> {contractBalance} ETH &nbsp;&nbsp;
+        <p className="status">{walletStatus}</p>
+      </p>
+      <h2 style={{ padiingTop: "5px", fontWeight: "bold" }}>My Wallet </h2>
+      <p className="address">
+        <b>Wallet Address:</b> {walletAddress} {}&nbsp;&nbsp;
+        <b>ETH Balance:</b> {walletBalance} ETH
+      </p>
+      <p>
+        <b>Token Balance:</b> {tokenWalletBalance} {tokenSymbol}&nbsp;&nbsp;
+        <b>Staked Tokens:</b> {stakedWalletBalance} {tokenSymbol}
+      </p>
       <div>
-        <p id="address">Wallet address: {walletAddress}</p>
-        <p id="signer-balance">
-          Wallet balance:{" "}
-          {walletBalance / Math.pow(10, walletBalance.length).toFixed(2)} ETH
-        </p>
-        <div>
-          <h3>Wallet tokens</h3>
-          {walletTokens.map((token) => (
-            <div className="user">
-              Contract: {token.contractAddress} : Balance:
-              {token.tokenBalance /
-                Math.pow(10, token.tokenBalance.length).toFixed(2)}
-            </div>
-          ))}
-        </div>
-        {/* <p id="signer-balance">{walletTokens}</p> */}
-      </div>
-      <div>
-        <h2 style={{ paddingTop: "5px" }}>Get Balance:</h2>
+        <h2 style={{ padiingTop: "5px", fontWeight: "bold" }}>
+          Get balance of any address
+        </h2>
         <input
           type="text"
           placeholder="Enter Wallet address 0x..."
           onChange={(e) => setBalanceAddress(e.target.value)}
           value={balanceAddress}
         />
-        <p id="status">Token balance: {balanceStatus}</p>
+        {balanceStatus ? (
+          <p className="status">
+            Token balance: {(balanceStatus / Math.pow(10, 18)).toFixed(5)}{" "}
+            {tokenSymbol}
+          </p>
+        ) : (
+          <p></p>
+        )}
 
-        <button id="publish" onClick={onGetBalancePressed}>
+        <button className="publish" onClick={onGetBalancePressed}>
           Get Balance
         </button>
       </div>
-      <h2 style={{ paddingTop: "5px" }}>Transfer Balance:</h2>
+      <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
+        Transfer tokens to someone
+      </h2>
       <div>
         <input
           type="text"
@@ -220,14 +235,38 @@ const SmartContract = () => {
           onChange={(e) => setTransferAmount(e.target.value)}
           value={transferAmount}
         />
-        <p id="status">{transferStatus}</p>
+        <p className="status">{transferStatus}</p>
 
-        <button id="publish" onClick={onTransferBalancePressed}>
+        <button className="publish" onClick={onTransferBalancePressed}>
           Transfer Balance
+        </button>
+      </div>
+
+      <div>
+        <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
+          Mint new tokens
+        </h2>
+        <p>You will mint 1000x the ETH that you pay:</p>
+        <input
+          type="text"
+          placeholder="How many new tokens would you like to mint?"
+          onChange={(e) => setMintValue(e.target.value)}
+          value={mintValue}
+        />
+        {mintValue ? (
+          <p className="status">
+            <p className="status">Status: {mintStatus}</p>
+          </p>
+        ) : (
+          <p></p>
+        )}
+
+        <button className="publish" onClick={OnMintTokensPressed}>
+          Mint Tokens
         </button>
       </div>
     </div>
   );
-};
+}
 
 export default SmartContract;
