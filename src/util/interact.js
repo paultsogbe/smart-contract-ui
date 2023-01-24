@@ -1,6 +1,6 @@
 import { Alchemy, Network } from "alchemy-sdk";
-import { async } from "q";
-import SmartContract from "../SmartContract";
+import { ethers } from "ethers";
+
 require("dotenv").config();
 
 const alchemyKey = process.env.REACT_APP_ALCHEMY_KEY;
@@ -57,12 +57,17 @@ export const connectWallet = async () => {
       });
       console.log(addressArray);
       const currentWalletBalance = await web3.eth.getBalance(addressArray[0]);
+
       const currentTokenBalance = await smartContract.methods
         .balanceOf(addressArray[0])
         .call();
+
       const stakedTokenBalance = await smartContract.methods
         .balanceOf(addressArray[0])
         .call();
+
+      console.log(stakedTokenBalance);
+      console.log(currentTokenBalance);
 
       const obj = {
         status: "✅ Wallet is connected!",
@@ -115,9 +120,8 @@ export const getAccountBalance = async (address) => {
   return message;
 };
 
-// Transfer tokens to someone information
+// TRANSFER TOKENS TO SOMEONE
 export const transferBalance = async (address, transferAddress, amount) => {
-  //input error handling
   if (!window.ethereum || address === null || transferAddress === null) {
     return {
       status:
@@ -125,14 +129,19 @@ export const transferBalance = async (address, transferAddress, amount) => {
     };
   }
 
-  //set up transaction parameters
+  //SET UP TRANSACTION PARAMETERS
   const transactionParameters = {
     to: contractAddress, // Required except during contract publications.
     from: address, // must match user's active address.
+    gas: "",
+    gasprice: "",
+    value: "",
     data: smartContract.methods.transfer(transferAddress, amount).encodeABI(),
+
+    // .Math.pow(10, 18),
   };
 
-  //sign the transaction
+  //SIGN THE TRANSACTION
   try {
     const txHash = await window.ethereum.request({
       method: "eth_sendTransaction",
@@ -159,8 +168,97 @@ export const transferBalance = async (address, transferAddress, amount) => {
   }
 };
 
-// Mint tokens information
-export const mintTokens = async (address, value) => {
+//  MINT TOKENS INFORMATION
+export const mintTokens = async (address, amount) => {
+  if (!window.ethereum || address === null) {
+    return {
+      status:
+        "💡 Connect your Metamask wallet to update the message on the blockchain.",
+    };
+  }
+
+  //SET UP TRANSACTION PARAMETERS
+  const transactionParameters = {
+    from: address, // must match user's active address.
+    data: smartContract.methods.mint(amount).encodeABI(),
+    to: contractAddress,
+
+    value: amount.substring(0, amount.length - 3),
+  };
+  console.log(amount, amount.substring(0, amount.length - 3));
+
+  try {
+    const txHash = await window.ethereum.request({
+      method: "eth_sendTransaction",
+      params: [transactionParameters],
+    });
+    return {
+      status: (
+        <span>
+          ✅{" "}
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href={`https://goerli.etherscan.io/tx/${txHash}`}
+          >
+            View the status of your transaction on Etherscan!
+          </a>
+        </span>
+      ),
+    };
+  } catch (error) {
+    return {
+      status: "😥 " + error.message,
+    };
+  }
+};
+
+//  BURN TOKENS INFORMATION
+export const burnTokens = async (address, amount) => {
+  if (!window.ethereum || address === null) {
+    return {
+      status:
+        "💡 Connect your Metamask wallet to burn tokens on the blockchain.",
+    };
+  }
+
+  //SET UP TRANSACTION PARAMETERS
+  const transactionParameters = {
+    from: address, // must match user's active address.
+    data: smartContract.methods.burnTokens(amount).encodeABI(),
+    to: contractAddress,
+
+    value: amount.substring(0, amount.length - 3),
+  };
+  console.log(amount, amount.substring(0, amount.length - 3));
+
+  try {
+    const txHash = await window.ethereum.request({
+      method: "eth_sendTransaction",
+      params: [transactionParameters],
+    });
+    return {
+      status: (
+        <span>
+          ✅{" "}
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href={`https://goerli.etherscan.io/tx/${txHash}`}
+          >
+            View the status of your transaction on Etherscan!
+          </a>
+        </span>
+      ),
+    };
+  } catch (error) {
+    return {
+      status: "😥 " + error.message,
+    };
+  }
+};
+
+export const stakeTokens = async (address, amount) => {
   // const [value, setValue] = useState(0);
   //input error handling
   if (!window.ethereum || address === null) {
@@ -173,12 +271,21 @@ export const mintTokens = async (address, value) => {
   //set up transaction parameters
   const transactionParameters = {
     from: address, // must match user's active address.
-    data: smartContract.methods.mint(address, value).encodeABI(),
+    data: smartContract.methods.stake(amount).encodeABI(),
+    to: contractAddress,
+    value: amount.substring(0, amount.length - 3),
   };
 
+  console.log(amount, amount.substring(0, amount.length - 3));
+
   try {
+    const tx = await smartContract.stake(ethers.utils.parseEther(amount), {
+      gasLimit: 1_000_000,
+    });
+    await tx.wait();
+
     const txHash = await window.ethereum.request({
-      method: "eth_mint",
+      method: "eth_sendTransaction",
       params: [transactionParameters],
     });
     return {

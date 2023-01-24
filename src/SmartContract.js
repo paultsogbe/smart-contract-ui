@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Accounts } from "web3-eth-accounts";
+import web3 from "web3";
 import logo from "./logo.png";
 import {
   loadContractBalance,
@@ -11,6 +12,8 @@ import {
   getAccountBalance,
   transferBalance,
   mintTokens,
+  burnTokens,
+  stakeTokens,
 } from "./util/interact";
 
 function SmartContract() {
@@ -42,13 +45,22 @@ function SmartContract() {
 
   //   TRANSFER TOKEN INFORMATION
   const [transferAddress, setTransferAddress] = useState("");
-  const [transferAmount, setTransferAmount] = useState();
+  const [transferAmount, setTransferAmount] = useState("0.1");
   const [transferStatus, setTransferStatus] = useState();
 
   // Mint tokens information
   const [mintAddress, setMintAddress] = useState("");
-  const [mintValue, setMintValue] = useState();
-  const [mintStatus, SetMintStatus] = useState();
+  const [mintValue, setMintValue] = useState("");
+  const [mintStatus, SetMintStatus] = useState("");
+
+  // BURN TOKENS INFORMATION
+  const [burnAddress, setBurnAddress] = useState("");
+  const [burnValue, setBurnValue] = useState("0.1");
+  const [burnStatus, SetBurnStatus] = useState("");
+
+  // Stake tokens information
+  const [stakeValue, setStakeValue] = useState("");
+  const [stakeStatus, SetStakeStatus] = useState("");
 
   //   Initializing all the functions
   useEffect(() => {
@@ -92,7 +104,7 @@ function SmartContract() {
     }
     setup();
   }, []);
-  // INFORMATION FOR WALLETLISTENER(écout)
+  // INFORMATION FOR WALLETLISTENER(écoutés)
   function addWalletListener() {
     if (window.ethereum) {
       window.ethereum.on("accountsChanged", (accounts) => {
@@ -139,25 +151,51 @@ function SmartContract() {
       (walletResponse.stakedTokenBalance / Math.pow(10, 18)).toFixed(5)
     );
   };
-
+  // GET ACCOUNT
   const onGetBalancePressed = async () => {
     const response = await getAccountBalance(balanceAddress);
     setBalanceStatus(response);
   };
-
-  const onTransferBalancePressed = async () => {
+  // TRANSFER BALANCE
+  const onTransferBalancePressed = async (event) => {
+    event.preventDefault();
     const { status } = await transferBalance(
       walletAddress,
       transferAddress,
-      transferAmount
+      web3.utils.toWei(transferAmount)
     );
 
     setTransferStatus(status);
+    // setTransferAmount(transferAmount);
+  };
+  // MINEUR
+  const OnMintTokensPressed = async () => {
+    const { mint } = await mintTokens(
+      walletAddress,
+      web3.utils.toWei(mintValue)
+    );
+
+    SetMintStatus(mint);
   };
 
-  const OnMintTokensPressed = async () => {
-    const { mint } = await mintTokens(walletAddress, mintValue);
-    SetMintStatus(mint);
+  // BURN TOKENS
+  const OnBurnTokensPressed = async () => {
+    const { burn } = await burnTokens(
+      walletAddress,
+      web3.utils.toWei(burnValue)
+    );
+
+    SetBurnStatus(burn);
+  };
+
+  // STAKE TOKENS
+
+  const OnStakeTokensPressed = async () => {
+    const { stake } = await stakeTokens(
+      walletAddress,
+      web3.utils.toWei(stakeValue)
+    );
+    SetStakeStatus(stake);
   };
 
   return (
@@ -165,7 +203,7 @@ function SmartContract() {
       <img src={logo} alt="logo" className="logo" />
       <button className="walletButton" onClick={connectWalletPressed}>
         {walletAddress.length > 0 ? (
-          "Connected" +
+          "Connected " +
           String(walletAddress).substring(0, 6) +
           "..." +
           String(walletAddress).substring(38)
@@ -196,7 +234,9 @@ function SmartContract() {
         <b>Token Balance:</b> {tokenWalletBalance} {tokenSymbol}&nbsp;&nbsp;
         <b>Staked Tokens:</b> {stakedWalletBalance} {tokenSymbol}
       </p>
+
       <div>
+        {/* GET BALANCE FOR ANY ADDRESS */}
         <h2 style={{ padiingTop: "5px", fontWeight: "bold" }}>
           Get balance of any address
         </h2>
@@ -219,51 +259,105 @@ function SmartContract() {
           Get Balance
         </button>
       </div>
+
+      {/* TRANSFER */}
       <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
         Transfer tokens to someone
       </h2>
-      <div>
-        <input
-          type="text"
-          placeholder="Enter Wallet address 0x..."
-          onChange={(e) => setTransferAddress(e.target.value)}
-          value={transferAddress}
-        />
-        <input
-          type="text"
-          placeholder="Enter Amount to be transferred"
-          onChange={(e) => setTransferAmount(e.target.value)}
-          value={transferAmount}
-        />
-        <p className="status">{transferStatus}</p>
 
-        <button className="publish" onClick={onTransferBalancePressed}>
-          Transfer Balance
-        </button>
+      <div>
+        <form onSubmit={onTransferBalancePressed}>
+          <input
+            type="text"
+            placeholder="Enter Wallet address 0x..."
+            onChange={(e) => setTransferAddress(e.target.value)}
+            value={transferAddress}
+            pattern="^0x[0-9a-fA-F]+$"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Enter Amount to be transferred"
+            onChange={(e) => setTransferAmount(e.target.value)}
+            value={transferAmount}
+            pattern="^[0-9]+(\.[0-9]{1,18})?$"
+            required
+          />
+          <p className="status">{transferStatus}</p>
+
+          <button className="publish">Transfer Balance</button>
+        </form>
       </div>
 
       <div>
-        <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
-          Mint new tokens
-        </h2>
-        <p>You will mint 1000x the ETH that you pay:</p>
-        <input
-          type="text"
-          placeholder="How many new tokens would you like to mint?"
-          onChange={(e) => setMintValue(e.target.value)}
-          value={mintValue}
-        />
-        {mintValue ? (
-          <p className="status">
-            <p className="status">Status: {mintStatus}</p>
-          </p>
-        ) : (
-          <p></p>
-        )}
+        {/* MINEUR<<<<<<<<<<<<<<<< */}
+        <form>
+          <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
+            Mint new tokens
+          </h2>
+          <p>You will mint 1000x the ETH that you pay:</p>
+          <input
+            type="text"
+            placeholder="How many new tokens would you like to mint?"
+            onChange={(e) => setMintValue(e.target.value)}
+            value={mintValue}
+          />
+          {mintValue ? (
+            <p className="status">
+              <p className="status">Status: {mintStatus}</p>
+            </p>
+          ) : (
+            <p></p>
+          )}
 
-        <button className="publish" onClick={OnMintTokensPressed}>
-          Mint Tokens
-        </button>
+          <button className="publish" onClick={OnMintTokensPressed}>
+            Mint Tokens
+          </button>
+        </form>
+      </div>
+
+      {/* BURN TOKENS */}
+
+      <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>Burn Tokens</h2>
+      <div>
+        <form onSubmit={OnBurnTokensPressed}>
+          <input
+            type="text"
+            placeholder="Enter Wallet address 0x..."
+            onChange={(e) => setBurnAddress(e.target.value)}
+            value={burnAddress}
+            pattern="^0x[0-9a-fA-F]+$"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Enter Amount to be transferred"
+            onChange={(e) => setBurnValue(e.target.value)}
+            value={burnValue}
+            pattern="^[0-9]+(\.[0-9]{1,18})?$"
+            required
+          />
+          <p className="status">{burnStatus}</p>
+
+          <button className="publish">Burn Token</button>
+        </form>
+      </div>
+      <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>Stake tokens</h2>
+      <div>
+        {/* ... */}{" "}
+        <form onSubmit={OnStakeTokensPressed}>
+          <label htmlFor="stake">Stake</label>{" "}
+          <input
+            className="stake"
+            placeholder="0.0 PRT"
+            value={stakeValue}
+            Value
+            onChange={(e) => setStakeValue(e.target.value)}
+          />
+          <p className="status">{stakeStatus}</p>
+          <button type="submit">Stake PRT</button>
+        </form>
+        {/* ... */}
       </div>
     </div>
   );
