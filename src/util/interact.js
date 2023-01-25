@@ -256,7 +256,6 @@ export const burnTokens = async (address, amount) => {
 
 // STAKE  TOKENS
 export const stakeTokens = async (address, amount) => {
-  //input error handling
   if (!window.ethereum || address === null) {
     return {
       status:

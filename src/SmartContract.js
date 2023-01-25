@@ -50,12 +50,12 @@ const SmartContract = () => {
   const [transferStatus, setTransferStatus] = useState();
 
   // Mint tokens information
-  // const [mintAddress, setMintAddress] = useState("");
+
   const [mintValue, setMintValue] = useState("");
   const [mintStatus, SetMintStatus] = useState("");
 
   // BURN TOKENS INFORMATION
-  // const [burnAddress, setBurnAddress] = useState("");
+
   const [burnValue, setBurnValue] = useState("");
   const [burnStatus, SetBurnStatus] = useState("");
 
@@ -148,6 +148,7 @@ const SmartContract = () => {
   }
 
   // CETTE FONCTION VA ALLER CHERCHÉE DES INFORMATIONS DANS L'OBJET DE L'AUTRE COTÉ( PARTIE WALLET)
+
   const connectWalletPressed = async () => {
     const walletResponse = await connectWallet();
     setStatus(walletResponse.status);
@@ -164,6 +165,7 @@ const SmartContract = () => {
   };
 
   // GET ACCOUNT BALANCE
+
   const onGetBalancePressed = async () => {
     const status = await getAccountBalance(balanceAddress);
     setBalanceStatus(status);
@@ -181,7 +183,7 @@ const SmartContract = () => {
     setTransferStatus(status);
   };
 
-  // MINEUR
+  // MINT TOKENS
   const OnMintTokensPressed = async (event) => {
     event.preventDefault();
     const { status } = await mintTokens(
@@ -302,8 +304,8 @@ const SmartContract = () => {
             placeholder="Enter Amount to be transferred"
             onChange={(e) => setTransferAmount(e.target.value)}
             value={transferAmount}
-            // pattern="^[0-9]+(\.[0-9]{1,18})?$"
-            // required
+            pattern="^[0-9]+(\.[0-9]{1,18})?$"
+            required
           />
           <p className="status">{transferStatus}</p>
 
