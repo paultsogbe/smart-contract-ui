@@ -264,6 +264,8 @@ const SmartContract = () => {
           &nbsp; &nbsp; <b>Staked balance: </b> {stakedBalance} {tokenSymbol}
         </p>
       </div>
+
+      {/* GET BALANCE OF ANY ADDRES */}
       <div>
         <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
           Get Balance of any address
@@ -288,6 +290,7 @@ const SmartContract = () => {
         </button>
       </div>
 
+      {/* TRANSFER TOKENS TO SOMEONE */}
       <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
         Transfer tokens to someone
       </h2>
@@ -312,7 +315,7 @@ const SmartContract = () => {
           <button className="publish">Transfer Balance</button>
         </form>
       </div>
-
+      {/* MINT  TOKENS */}
       <div>
         <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
           Mint new tokens
@@ -336,7 +339,7 @@ const SmartContract = () => {
           Mint Tokens
         </button>
       </div>
-
+      {/* BURN TOKENS */}
       <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>Burn tokens</h2>
 
       <div>
@@ -360,6 +363,7 @@ const SmartContract = () => {
         {/* <p>You will burn 1000x the ETH that you pay:</p> */}
       </div>
 
+      {/* STAKE TOKENS */}
       <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>Stake tokens</h2>
       <div>
         {/* ... */}{" "}

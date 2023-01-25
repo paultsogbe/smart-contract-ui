@@ -59,7 +59,7 @@ export const connectWallet = async () => {
       console.log(currentTokenBalance);
 
       const stakedTokenBalance = await smartContract.methods
-        .balanceOf(addressArray[0])
+        .stakedTokens(addressArray[0])
         .call();
 
       console.log(stakedTokenBalance);
@@ -177,7 +177,8 @@ export const mintTokens = async (address, amount) => {
     from: address, // must match user's active address.
     data: smartContract.methods.mint(amount).encodeABI(),
     to: contractAddress,
-    value: amount.substring(0, amount.length - 3),
+
+    value: web3.utils.toHex(amount.substring(0, amount.length - 3)),
   };
 
   console.log(amount, amount.substring(0, amount.length - 3));
@@ -223,7 +224,7 @@ export const burnTokens = async (address, amount) => {
     from: address, // must match user's active address.
     data: smartContract.methods.burn(amount).encodeABI(),
     to: contractAddress,
-    value: amount.substring(0, amount.length - 3),
+    // value: amount.substring(0, amount.length - 3),
   };
 
   console.log(amount, amount.substring(0, amount.length - 3));
@@ -268,7 +269,7 @@ export const stakeTokens = async (address, amount) => {
     from: address, // must match user's active address.
     data: smartContract.methods.stake(amount).encodeABI(),
     to: contractAddress,
-    value: amount.substring(0, amount.length),
+    // value: amount.substring(0, amount.length),
   };
 
   console.log(amount, amount.substring(0, amount.length));
