@@ -19,7 +19,7 @@ code {
 }
 
 .container {
-  width: 80vh;
+  width: 100vh;
   margin-top: 32px;
   border: 4px dashed rgba(4, 4, 5, 0.1);
   min-height: 140px;

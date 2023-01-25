@@ -1,68 +1,75 @@
-import { useState, useEffect } from "react";
-import { Accounts } from "web3-eth-accounts";
+import { useEffect, useState } from "react";
 import web3 from "web3";
 import logo from "./logo.png";
+
 import {
-  loadContractBalance,
   loadTokenName,
   loadTokenSymbol,
   loadTokenDecimals,
   loadTokenTotalSupply,
+  loadContractBalance,
   connectWallet,
   getAccountBalance,
   transferBalance,
   mintTokens,
   burnTokens,
   stakeTokens,
+  // unStakeTokens
 } from "./util/interact";
 
-function SmartContract() {
+const SmartContract = () => {
   // SMART CONGRACT INFORMATION
-  const [contractBalance, setContractBalance] = useState(
-    "No connection to the network."
-  );
-  const [tokenName, setTokenName] = useState("No connection to the network.");
+  const [tokenName, setTokenName] = useState("No connection to the network."); //default message
   const [tokenSymbol, setTokenSymbol] = useState(
     "No connection to the network."
-  );
+  ); //default message
   const [tokenDecimals, setTokenDecimals] = useState(
     "No connection to the network."
-  );
-  const [tokenTotalSupply, setTokenTotalSupply] = useState(
+  ); //default message
+  const [tokenSupply, setTokenSupply] = useState(
     "No connection to the network."
-  );
+  ); //default message
+  const [contractBalance, setContractBalanace] = useState(
+    "No connection to the network."
+  ); //default message
 
   //   WALLET INFOMATION 🦊
+  const [status, setStatus] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
-  const [walletStatus, setWalletStatus] = useState("");
-  const [walletBalance, setWalletBalance] = useState(" ");
-  const [tokenWalletBalance, setTokenWalletBalance] = useState(" ");
-  const [stakedWalletBalance, setStakedWalletBalance] = useState("");
+  const [walletBalance, setWalletBalance] = useState("");
+  const [tokenBalance, setTokenBalance] = useState("");
+  const [stakedBalance, setStakedBalance] = useState("");
 
   //   GET BALANCE OF ANY ADDRESS INFORMATION
-  const [balanceAddress, setBalanceAddress] = useState("");
+  const [balanceAddress, setBalanceAddress] = useState();
   const [balanceStatus, setBalanceStatus] = useState();
 
   //   TRANSFER TOKEN INFORMATION
   const [transferAddress, setTransferAddress] = useState("");
-  const [transferAmount, setTransferAmount] = useState("0.1");
+  const [transferAmount, setTransferAmount] = useState("");
   const [transferStatus, setTransferStatus] = useState();
 
   // Mint tokens information
-  const [mintAddress, setMintAddress] = useState("");
+  // const [mintAddress, setMintAddress] = useState("");
   const [mintValue, setMintValue] = useState("");
   const [mintStatus, SetMintStatus] = useState("");
 
   // BURN TOKENS INFORMATION
-  const [burnAddress, setBurnAddress] = useState("");
-  const [burnValue, setBurnValue] = useState("0.1");
+  // const [burnAddress, setBurnAddress] = useState("");
+  const [burnValue, setBurnValue] = useState("");
   const [burnStatus, SetBurnStatus] = useState("");
 
   // Stake tokens information
   const [stakeValue, setStakeValue] = useState("");
   const [stakeStatus, SetStakeStatus] = useState("");
 
+  //  UNSTOKENS INFORMATION
+
+  // const [unStakeValue, setUnstakeValue] = useState("");
+  // const [unStakeStatus, SetUnstakeStatus] = useState("");
+
   //   Initializing all the functions
+  // called only once
   useEffect(() => {
     async function setup() {
       const tokenName = await loadTokenName();
@@ -74,13 +81,13 @@ function SmartContract() {
       const tokenDecimals = await loadTokenDecimals();
       setTokenDecimals(tokenDecimals);
 
-      const tokenTotalSupply = await loadTokenTotalSupply();
-      setTokenTotalSupply((tokenTotalSupply / Math.pow(10, 18)).toFixed(2));
+      const tokenSupply = await loadTokenTotalSupply();
+      setTokenSupply((tokenSupply / Math.pow(10, 18)).toFixed(2));
 
       const contractBalance = await loadContractBalance();
-      setContractBalance((contractBalance / Math.pow(10, 21)).toFixed(5));
+      setContractBalanace((contractBalance / Math.pow(10, 18)).toFixed(5));
 
-      // INISSIALISATION WALLET INFORMATION
+      // INITIALIZING WALLET INFORMATION
       const {
         status,
         address,
@@ -90,72 +97,78 @@ function SmartContract() {
       } = await connectWallet();
 
       setWalletAddress(address);
-      setWalletStatus(status);
+
+      setStatus(status);
+
       setWalletBalance((currentWalletBalance / Math.pow(10, 18)).toFixed(5));
-      setTokenWalletBalance(
-        (currentTokenBalance / Math.pow(10, 18)).toFixed(5)
-      );
-      setStakedWalletBalance(
-        (stakedTokenBalance / Math.pow(10, 18)).toFixed(5)
-      );
+      setTokenBalance((currentTokenBalance / Math.pow(10, 18)).toFixed(5));
+      setStakedBalance((stakedTokenBalance / Math.pow(10, 18)).toFixed(5));
+
       addWalletListener();
+
       connectWalletPressed();
-      //   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
+
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     setup();
   }, []);
+
   // INFORMATION FOR WALLETLISTENER(écoutés)
   function addWalletListener() {
     if (window.ethereum) {
       window.ethereum.on("accountsChanged", (accounts) => {
         if (accounts.length > 0) {
           setWalletAddress(accounts[0]);
-          setWalletStatus("✅ Wallet is connected!");
           setWalletBalance((accounts[0] / Math.pow(10, 18)).toFixed(5));
-          setTokenWalletBalance((accounts[0] / Math.pow(10, 18)).toFixed(5));
-          setStakedWalletBalance((accounts[0] / Math.pow(10, 18)).toFixed(5));
+          setTokenBalance((accounts[0] / Math.pow(10, 18)).toFixed(5));
+          setStakedBalance((accounts[0] / Math.pow(10, 18)).toFixed(5));
+          setStatus("👆🏽 Populate the Data and Click on Button to execute...");
         } else {
-          setWalletStatus(
-            <span>
-              <p>
-                {" "}
-                🦊{" "}
-                <a
-                  target="_blank"
-                  rel="noreferrer"
-                  href={`https://metamask.io/download.html`}
-                >
-                  You must install Metamask, a virtual Ethereum wallet, in your
-                  browser.
-                </a>
-              </p>
-            </span>
-          );
+          setWalletAddress("");
+          setStatus("🦊 Connect to Metamask using the top right button.");
         }
       });
+    } else {
+      setStatus(
+        <p>
+          {" "}
+          🦊{" "}
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href={`https://metamask.io/download.html`}
+          >
+            You must install Metamask, a virtual Ethereum wallet, in your
+            browser.
+          </a>
+        </p>
+      );
     }
   }
+
   // CETTE FONCTION VA ALLER CHERCHÉE DES INFORMATIONS DANS L'OBJET DE L'AUTRE COTÉ( PARTIE WALLET)
   const connectWalletPressed = async () => {
     const walletResponse = await connectWallet();
-
+    setStatus(walletResponse.status);
     setWalletAddress(walletResponse.address);
-    setWalletStatus(walletResponse.status);
     setWalletBalance(
       (walletResponse.currentWalletBalance / Math.pow(10, 18)).toFixed(5)
     );
-    setTokenWalletBalance(
+    setTokenBalance(
       (walletResponse.currentTokenBalance / Math.pow(10, 18)).toFixed(5)
     );
-    setStakedWalletBalance(
+    setStakedBalance(
       (walletResponse.stakedTokenBalance / Math.pow(10, 18)).toFixed(5)
     );
   };
-  // GET ACCOUNT
+
+  // GET ACCOUNT BALANCE
   const onGetBalancePressed = async () => {
-    const response = await getAccountBalance(balanceAddress);
-    setBalanceStatus(response);
+    const status = await getAccountBalance(balanceAddress);
+    setBalanceStatus(status);
   };
+
   // TRANSFER BALANCE
   const onTransferBalancePressed = async (event) => {
     event.preventDefault();
@@ -166,44 +179,55 @@ function SmartContract() {
     );
 
     setTransferStatus(status);
-    // setTransferAmount(transferAmount);
   };
+
   // MINEUR
-  const OnMintTokensPressed = async () => {
-    const { mint } = await mintTokens(
+  const OnMintTokensPressed = async (event) => {
+    event.preventDefault();
+    const { status } = await mintTokens(
       walletAddress,
       web3.utils.toWei(mintValue)
     );
-
-    SetMintStatus(mint);
+    SetMintStatus(status);
   };
 
   // BURN TOKENS
-  const OnBurnTokensPressed = async () => {
-    const { burn } = await burnTokens(
+  const OnBurnTokensPressed = async (event) => {
+    event.preventDefault();
+    const { status } = await burnTokens(
       walletAddress,
       web3.utils.toWei(burnValue)
     );
-
-    SetBurnStatus(burn);
+    SetBurnStatus(status);
   };
 
   // STAKE TOKENS
-
-  const OnStakeTokensPressed = async () => {
-    const { stake } = await stakeTokens(
+  const OnStakeTokensPressed = async (event) => {
+    event.preventDefault();
+    const { status } = await stakeTokens(
       walletAddress,
       web3.utils.toWei(stakeValue)
     );
-    SetStakeStatus(stake);
+    SetStakeStatus(status);
   };
+
+  // UNSTAKE TOKENS
+
+  // const onUnstakeTokensPressed = async (event) => {
+  //   event.preventDefault();
+  //   const { status } = await unStakeTokens(
+  //     walletAddress,
+  //     web3.utils.toWei(unStakeValue)
+  //   );
+  //   SetUnstakeStatus(status);
+  // };
 
   return (
     <div className="container">
-      <img src={logo} alt="logo" className="logo" />
+      <img className="logo" src={logo} alt="logo"></img>
       <button className="walletButton" onClick={connectWalletPressed}>
         {walletAddress.length > 0 ? (
-          "Connected " +
+          "Connected: " +
           String(walletAddress).substring(0, 6) +
           "..." +
           String(walletAddress).substring(38)
@@ -212,33 +236,35 @@ function SmartContract() {
         )}
       </button>
       <p style={{ paddingTop: "50px" }}>
-        <b>Token Name:</b> {tokenName}&nbsp;&nbsp;
-        <b>Token Symbol:</b> {tokenSymbol} &nbsp;&nbsp;
-        <b>Token Decimals:</b>
+        <b>Token Name:</b> {tokenName} &nbsp; <b>Token Symbol:</b> {tokenSymbol}
+        &nbsp; &nbsp;<b>Token Decimals:</b>
         {tokenDecimals}
       </p>
-
       <p>
-        <b> Total Supply:</b> {tokenTotalSupply} {tokenSymbol}&nbsp;&nbsp;
-      </p>
-      <p>
-        <b>Smart Contract ETH Balance:</b> {contractBalance} ETH &nbsp;&nbsp;
-        <p className="status">{walletStatus}</p>
-      </p>
-      <h2 style={{ padiingTop: "5px", fontWeight: "bold" }}>My Wallet </h2>
-      <p className="address">
-        <b>Wallet Address:</b> {walletAddress} {}&nbsp;&nbsp;
-        <b>ETH Balance:</b> {walletBalance} ETH
+        <b>Total Supply:</b> {tokenSupply} {tokenSymbol}
       </p>
       <p>
-        <b>Token Balance:</b> {tokenWalletBalance} {tokenSymbol}&nbsp;&nbsp;
-        <b>Staked Tokens:</b> {stakedWalletBalance} {tokenSymbol}
+        <b>Smart Contract ETH Balance:</b> {contractBalance} ETH
       </p>
-
+      <p className="status">{status}</p>
+      <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>My wallet</h2>
       <div>
-        {/* GET BALANCE FOR ANY ADDRESS */}
-        <h2 style={{ padiingTop: "5px", fontWeight: "bold" }}>
-          Get balance of any address
+        <p className="address">
+          <b>Wallet address: </b>
+          {walletAddress} &nbsp;
+        </p>
+        <p>
+          <b>ETH balance: </b>
+          {walletBalance} ETH
+        </p>
+        <p className="address">
+          <b>Token balance: </b> {tokenBalance} {tokenSymbol}
+          &nbsp; &nbsp; <b>Staked balance: </b> {stakedBalance} {tokenSymbol}
+        </p>
+      </div>
+      <div>
+        <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
+          Get Balance of any address
         </h2>
         <input
           type="text"
@@ -260,11 +286,9 @@ function SmartContract() {
         </button>
       </div>
 
-      {/* TRANSFER */}
       <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
         Transfer tokens to someone
       </h2>
-
       <div>
         <form onSubmit={onTransferBalancePressed}>
           <input
@@ -272,16 +296,14 @@ function SmartContract() {
             placeholder="Enter Wallet address 0x..."
             onChange={(e) => setTransferAddress(e.target.value)}
             value={transferAddress}
-            pattern="^0x[0-9a-fA-F]+$"
-            required
           />
           <input
             type="text"
             placeholder="Enter Amount to be transferred"
             onChange={(e) => setTransferAmount(e.target.value)}
             value={transferAmount}
-            pattern="^[0-9]+(\.[0-9]{1,18})?$"
-            required
+            // pattern="^[0-9]+(\.[0-9]{1,18})?$"
+            // required
           />
           <p className="status">{transferStatus}</p>
 
@@ -290,77 +312,78 @@ function SmartContract() {
       </div>
 
       <div>
-        {/* MINEUR<<<<<<<<<<<<<<<< */}
-        <form>
-          <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
-            Mint new tokens
-          </h2>
-          <p>You will mint 1000x the ETH that you pay:</p>
+        <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>
+          Mint new tokens
+        </h2>
+        <p>You will mint 1000x the ETH that you pay:</p>
+        <input
+          type="text"
+          placeholder="How many new tokens would you like to mint?"
+          onChange={(e) => setMintValue(e.target.value)}
+          value={mintValue}
+        />
+        {mintValue ? (
+          <p className="status">
+            <p className="status">Status: {mintStatus}</p>
+          </p>
+        ) : (
+          <p></p>
+        )}
+
+        <button className="publish" onClick={OnMintTokensPressed}>
+          Mint Tokens
+        </button>
+      </div>
+
+      <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>Burn tokens</h2>
+
+      <div>
+        <form onSubmit={OnBurnTokensPressed}>
           <input
             type="text"
             placeholder="How many new tokens would you like to mint?"
-            onChange={(e) => setMintValue(e.target.value)}
-            value={mintValue}
+            onChange={(e) => setBurnValue(e.target.value)}
+            value={burnValue}
           />
-          {mintValue ? (
+          {burnValue ? (
             <p className="status">
-              <p className="status">Status: {mintStatus}</p>
+              <p className="status">Status: {burnStatus}</p>
             </p>
           ) : (
             <p></p>
           )}
 
-          <button className="publish" onClick={OnMintTokensPressed}>
-            Mint Tokens
-          </button>
+          <button className="publish">Burn Tokens</button>
         </form>
+        {/* <p>You will burn 1000x the ETH that you pay:</p> */}
       </div>
 
-      {/* BURN TOKENS */}
-
-      <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>Burn Tokens</h2>
-      <div>
-        <form onSubmit={OnBurnTokensPressed}>
-          <input
-            type="text"
-            placeholder="Enter Wallet address 0x..."
-            onChange={(e) => setBurnAddress(e.target.value)}
-            value={burnAddress}
-            pattern="^0x[0-9a-fA-F]+$"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Enter Amount to be transferred"
-            onChange={(e) => setBurnValue(e.target.value)}
-            value={burnValue}
-            pattern="^[0-9]+(\.[0-9]{1,18})?$"
-            required
-          />
-          <p className="status">{burnStatus}</p>
-
-          <button className="publish">Burn Token</button>
-        </form>
-      </div>
       <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>Stake tokens</h2>
       <div>
         {/* ... */}{" "}
-        <form onSubmit={OnStakeTokensPressed}>
+        <form>
           <label htmlFor="stake">Stake</label>{" "}
           <input
-            className="stake"
+            id="stake"
             placeholder="0.0 PRT"
             value={stakeValue}
-            Value
             onChange={(e) => setStakeValue(e.target.value)}
           />
-          <p className="status">{stakeStatus}</p>
-          <button type="submit">Stake PRT</button>
+          {stakeValue ? (
+            <p className="status">
+              <p className="status">Status: {stakeStatus}</p>
+            </p>
+          ) : (
+            <p></p>
+          )}
+          <button type="submit" onClick={OnStakeTokensPressed}>
+            Stake PRT
+          </button>
         </form>
         {/* ... */}
       </div>
     </div>
   );
-}
+};
 
 export default SmartContract;
