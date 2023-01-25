@@ -184,7 +184,7 @@ const SmartContract = () => {
   };
 
   // MINT TOKENS
-  const OnMintTokensPressed = async (event) => {
+  const onMintTokensPressed = async (event) => {
     event.preventDefault();
     const { status } = await mintTokens(
       walletAddress,
@@ -194,7 +194,7 @@ const SmartContract = () => {
   };
 
   // BURN TOKENS
-  const OnBurnTokensPressed = async (event) => {
+  const onBurnTokensPressed = async (event) => {
     event.preventDefault();
     const { status } = await burnTokens(
       walletAddress,
@@ -204,7 +204,7 @@ const SmartContract = () => {
   };
 
   // STAKE TOKENS
-  const OnStakeTokensPressed = async (event) => {
+  const onStakeTokensPressed = async (event) => {
     event.preventDefault();
     const { status } = await stakeTokens(
       walletAddress,
@@ -332,7 +332,7 @@ const SmartContract = () => {
           <p></p>
         )}
 
-        <button className="publish" onClick={OnMintTokensPressed}>
+        <button className="publish" onClick={onMintTokensPressed}>
           Mint Tokens
         </button>
       </div>
@@ -340,7 +340,7 @@ const SmartContract = () => {
       <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>Burn tokens</h2>
 
       <div>
-        <form onSubmit={OnBurnTokensPressed}>
+        <form onSubmit={onBurnTokensPressed}>
           <input
             type="text"
             placeholder="How many new tokens would you like to mint?"
@@ -363,7 +363,7 @@ const SmartContract = () => {
       <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>Stake tokens</h2>
       <div>
         {/* ... */}{" "}
-        <form>
+        <form onSubmit={onStakeTokensPressed}>
           <label htmlFor="stake">Stake</label>{" "}
           <input
             id="stake"
@@ -378,9 +378,7 @@ const SmartContract = () => {
           ) : (
             <p></p>
           )}
-          <button type="submit" onClick={OnStakeTokensPressed}>
-            Stake PRT
-          </button>
+          <button type="submit">Stake PRT</button>
         </form>
         {/* ... */}
       </div>
