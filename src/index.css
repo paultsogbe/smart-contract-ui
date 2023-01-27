@@ -104,3 +104,10 @@ h2 {
 a {
   color: #254cdd;
 }
+
+button[disabled] {
+  background: grey;
+  cursor: not-allowed;
+}
+
+

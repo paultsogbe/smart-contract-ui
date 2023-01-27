@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import web3 from "web3";
 import logo from "./logo.png";
+// import { PieChart } from "react-minimal-pie-chart";
+import { Chart } from "react-google-charts";
 
 import {
   loadTokenName,
@@ -14,7 +16,9 @@ import {
   mintTokens,
   burnTokens,
   stakeTokens,
-  // unStakeTokens
+  unstakeTokens,
+  loadTotals,
+  Inter,
 } from "./util/interact";
 
 const SmartContract = () => {
@@ -39,6 +43,9 @@ const SmartContract = () => {
   const [walletBalance, setWalletBalance] = useState("");
   const [tokenBalance, setTokenBalance] = useState("");
   const [stakedBalance, setStakedBalance] = useState("");
+  const [freeTokens, setFreeTokens] = useState("");
+  const [freeTokensAfterUnstaking, setFreeTokensAfterUnstaking] = useState("");
+  const [admin, setAdmin] = useState("");
 
   //   GET BALANCE OF ANY ADDRESS INFORMATION
   const [balanceAddress, setBalanceAddress] = useState();
@@ -65,8 +72,12 @@ const SmartContract = () => {
 
   //  UNSTOKENS INFORMATION
 
-  // const [unStakeValue, setUnstakeValue] = useState("");
-  // const [unStakeStatus, SetUnstakeStatus] = useState("");
+  const [unstakeStatus, SetUnstakeStatus] = useState("");
+
+  // Pie chart data
+  const [freeSupply, setFreeSupply] = useState(Number());
+  const [stakedSupply, setStakedSupply] = useState(Number());
+  const [dataChart, setDataChart] = useState([]);
 
   //   Initializing all the functions
   // called only once
@@ -80,9 +91,20 @@ const SmartContract = () => {
 
       const tokenDecimals = await loadTokenDecimals();
       setTokenDecimals(tokenDecimals);
+      // AFFICHAGE DES STAKEBALANCES
+      const { totalFreeSupply, totalSupply, totalStakedSupply } =
+        await loadTotals();
+      console.log({
+        totalFreeSupply,
+        totalSupply,
+        totalStakedSupply,
+      });
+      console.log(totalFreeSupply);
+      setFreeSupply(totalFreeSupply);
+      setStakedSupply(totalStakedSupply);
 
-      const tokenSupply = await loadTokenTotalSupply();
-      setTokenSupply((tokenSupply / Math.pow(10, 18)).toFixed(2));
+      // const tokenSupply = await loadTokenTotalSupply();
+      setTokenSupply((totalSupply / Math.pow(10, 18)).toFixed(2));
 
       const contractBalance = await loadContractBalance();
       setContractBalanace((contractBalance / Math.pow(10, 18)).toFixed(5));
@@ -94,6 +116,7 @@ const SmartContract = () => {
         currentWalletBalance,
         currentTokenBalance,
         stakedTokenBalance,
+        tokenHolder,
       } = await connectWallet();
 
       setWalletAddress(address);
@@ -102,7 +125,23 @@ const SmartContract = () => {
 
       setWalletBalance((currentWalletBalance / Math.pow(10, 18)).toFixed(5));
       setTokenBalance((currentTokenBalance / Math.pow(10, 18)).toFixed(5));
-      setStakedBalance((stakedTokenBalance / Math.pow(10, 18)).toFixed(5));
+      setStakedBalance(
+        Number(stakedTokenBalance / Math.pow(10, 18)).toFixed(5)
+      );
+
+      // FREE TOKENS LIBRE =  ( setTokenBalance - setStakedTokenBalance) NJL = NJ - NJS
+      setFreeTokens(
+        Number(
+          (currentTokenBalance / Math.pow(10, 18)).toFixed(5) -
+            (stakedTokenBalance / Math.pow(10, 18)).toFixed(5)
+        )
+      );
+
+      setFreeTokensAfterUnstaking(
+        (parseInt(currentTokenBalance) + 2 * stakedTokenBalance) /
+          Math.pow(10, 18).toFixed(5)
+      );
+      setAdmin(tokenHolder);
 
       addWalletListener();
 
@@ -122,8 +161,9 @@ const SmartContract = () => {
           setWalletAddress(accounts[0]);
           setWalletBalance((accounts[0] / Math.pow(10, 18)).toFixed(5));
           setTokenBalance((accounts[0] / Math.pow(10, 18)).toFixed(5));
-          setStakedBalance((accounts[0] / Math.pow(10, 18)).toFixed(5));
+          setStakedBalance(Number((accounts[0] / Math.pow(10, 18)).toFixed(5)));
           setStatus("👆🏽 Populate the Data and Click on Button to execute...");
+          console.log(stakedBalance);
         } else {
           setWalletAddress("");
           setStatus("🦊 Connect to Metamask using the top right button.");
@@ -162,6 +202,7 @@ const SmartContract = () => {
     setStakedBalance(
       (walletResponse.stakedTokenBalance / Math.pow(10, 18)).toFixed(5)
     );
+    setAdmin(walletResponse.tokenHolder);
   };
 
   // GET ACCOUNT BALANCE
@@ -215,14 +256,15 @@ const SmartContract = () => {
 
   // UNSTAKE TOKENS
 
-  // const onUnstakeTokensPressed = async (event) => {
-  //   event.preventDefault();
-  //   const { status } = await unStakeTokens(
-  //     walletAddress,
-  //     web3.utils.toWei(unStakeValue)
-  //   );
-  //   SetUnstakeStatus(status);
-  // };
+  const onUnstakeTokensPressed = async (event) => {
+    console.log("button unstake pressed");
+    event.preventDefault();
+    const { status } = await unstakeTokens(
+      walletAddress
+      // web3.utils.toWei(unstakeValue)
+    );
+    SetUnstakeStatus(status);
+  };
 
   return (
     <div className="container">
@@ -248,8 +290,28 @@ const SmartContract = () => {
       <p>
         <b>Smart Contract ETH Balance:</b> {contractBalance} ETH
       </p>
-      <p className="status">{status}</p>
+      <div>
+        {walletAddress ? (
+          // <Chart
+          //   chartType="PieChart"
+          //   data={[
+          //     ["Supply", "TPR"],
+          //     ["Staked", 2102000000000000000],
+          //     ["Free", 1303922709217349632000],
+          //     ["Total", 1306024709217349632000],
+          //   ]}
+          //   options={{ title: "My token balance", is3D: true }}
+          //   width="100%"
+          //   height="400px"
+          //   legendToggle
+          <Inter />
+        ) : (
+          <p>Loading...</p>
+        )}
+      </div>
+
       <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>My wallet</h2>
+      <p className="status">{status}</p>
       <div>
         <p className="address">
           <b>Wallet address: </b>
@@ -262,6 +324,14 @@ const SmartContract = () => {
         <p className="address">
           <b>Token balance: </b> {tokenBalance} {tokenSymbol}
           &nbsp; &nbsp; <b>Staked balance: </b> {stakedBalance} {tokenSymbol}
+        </p>
+        <p className="freetoken">
+          <b> My tokens free to transfer: </b> {freeTokens} {tokenSymbol}
+        </p>
+        {/* SIMILATION TOKENS */}
+        <p className="freetoken">
+          <b> My free tokens after unstaking: </b> {freeTokensAfterUnstaking}{" "}
+          {tokenSymbol}
         </p>
       </div>
 
@@ -346,7 +416,7 @@ const SmartContract = () => {
         <form onSubmit={onBurnTokensPressed}>
           <input
             type="text"
-            placeholder="How many new tokens would you like to mint?"
+            placeholder="How many new tokens would you like to burn?"
             onChange={(e) => setBurnValue(e.target.value)}
             value={burnValue}
           />
@@ -371,7 +441,7 @@ const SmartContract = () => {
           <label htmlFor="stake">Stake</label>{" "}
           <input
             id="stake"
-            placeholder="0.0 PRT"
+            placeholder="How many new tokens PRT would you like to stake?"
             value={stakeValue}
             onChange={(e) => setStakeValue(e.target.value)}
           />
@@ -385,6 +455,25 @@ const SmartContract = () => {
           <button type="submit">Stake PRT</button>
         </form>
         {/* ... */}
+      </div>
+
+      {/* UNSTAKE TOKENS */}
+      <h2 style={{ paddingTop: "5px", fontWeight: "bold" }}>Unstake tokens</h2>
+      <div>
+        <button
+          type="button"
+          disabled={admin !== walletAddress}
+          onClick={onUnstakeTokensPressed}
+          title={
+            admin !== walletAddress
+              ? "Only the admin can unstake all tokens"
+              : null
+          }
+        >
+          {" "}
+          Unstake tokens
+        </button>
+        <p className="status">Status: {unstakeStatus} </p>
       </div>
     </div>
   );
