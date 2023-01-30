@@ -75,9 +75,9 @@ const SmartContract = () => {
   const [unstakeStatus, SetUnstakeStatus] = useState("");
 
   // Pie chart data
-  const [freeSupply, setFreeSupply] = useState(Number());
-  const [stakedSupply, setStakedSupply] = useState(Number());
-  const [dataChart, setDataChart] = useState([]);
+  // const [freeSupply, setFreeSupply] = useState(Number());
+  // const [stakedSupply, setStakedSupply] = useState(Number());
+  const [chartData, setChartData] = useState(null);
 
   //   Initializing all the functions
   // called only once
@@ -99,9 +99,11 @@ const SmartContract = () => {
         totalSupply,
         totalStakedSupply,
       });
-      console.log(totalFreeSupply);
-      setFreeSupply(totalFreeSupply);
-      setStakedSupply(totalStakedSupply);
+      setChartData({ totalFreeSupply, totalSupply, totalStakedSupply });
+
+      // console.log(totalFreeSupply);
+      // setFreeSupply(totalFreeSupply);
+      // setStakedSupply(totalStakedSupply);
 
       // const tokenSupply = await loadTokenTotalSupply();
       setTokenSupply((totalSupply / Math.pow(10, 18)).toFixed(2));
@@ -292,20 +294,36 @@ const SmartContract = () => {
       </p>
       <div>
         {walletAddress ? (
-          // <Chart
-          //   chartType="PieChart"
-          //   data={[
-          //     ["Supply", "TPR"],
-          //     ["Staked", 2102000000000000000],
-          //     ["Free", 1303922709217349632000],
-          //     ["Total", 1306024709217349632000],
-          //   ]}
-          //   options={{ title: "My token balance", is3D: true }}
-          //   width="100%"
-          //   height="400px"
-          //   legendToggle
-          <Inter />
+          <Chart
+            chartType="PieChart"
+            data={[
+              ["Supply", "TPR"],
+              [
+                "Staked",
+                parseInt(
+                  chartData.totalStakedSupply.substring(
+                    0,
+                    chartData.totalStakedSupply.length - 18
+                  )
+                ),
+              ],
+              [
+                "Free",
+                parseInt(
+                  chartData.totalFreeSupply.substring(
+                    0,
+                    chartData.totalFreeSupply.length - 18
+                  )
+                ),
+              ],
+            ]}
+            options={{ title: "Total Supply", is3D: true }}
+            width="100%"
+            height="400px"
+            legendToggle
+          />
         ) : (
+          // <Inter />
           <p>Loading...</p>
         )}
       </div>

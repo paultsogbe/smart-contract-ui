@@ -30,7 +30,7 @@ export const loadTokenDecimals = async () => {
   const response = await smartContract.methods.decimals().call();
   return response;
 };
-
+// A SUPRIMÉ AU MOMENT TU CHERCHE STAKEBALANCE
 // export const loadTokenTotalSupply = async () => {
 //   const response = await smartContract.methods.totalSupply().call();
 //   return response;
@@ -385,11 +385,6 @@ export const unstakeTokens = async (address) => {
   // console.log(amount, amount.substring(0, amount.length - 3));
 
   try {
-    // const tx = await smartContract.stake(ethers.utils.parseEther(amount), {
-    //   gasLimit: 1_000_000,
-    // });
-    // await tx.wait();
-
     const txHash = await window.ethereum.request({
       method: "eth_sendTransaction",
       params: [transactionParameters],
@@ -399,7 +394,7 @@ export const unstakeTokens = async (address) => {
     // const txHash = await smartContract.methods.unstakeAll().send({
     //   from: address,
     //   to: contractAddress,
-    // })
+    // });
 
     return {
       status: (
@@ -422,72 +417,26 @@ export const unstakeTokens = async (address) => {
   }
 };
 
-export const data = [
-  ["Supply", "TPR"],
-  ["totalStakedSupply", 2102000000000000000],
-  ["totalFreeSupply", 1303922709217349632000],
-  ["totalSupply", 1306024709217349632000],
-];
+// export const data = [
+//   ["Supply", "TPR"],
+//   ["totalStakedSupply", 2102000000000000000],
+//   ["totalFreeSupply", 1303922709217349632000],
+//   ["totalSupply", 1306024709217349632000],
+// ];
 
-export const options = {
-  title: "My Daily camembert!",
-  is3D: true,
-};
-
-export function Inter() {
-  return (
-    <Chart
-      chartType="PieChart"
-      data={data}
-      options={options}
-      width={"100%"}
-      height={"400px"}
-    />
-  );
-}
-
-// / STAKE BALANCE
-// export const stakeBalances = async (address, amount) => {
-//   if (!window.ethereum || address === null) {
-//     return {
-//       status:
-//         "💡 Connect your Metamask wallet to   get stakebalance on the blockchain.",
-//     };
-//   }
-
-//   //set up transaction parameters
-//   const transactionParameters = {
-//     from: address, // must match user's active address.
-//     data: Promise.all(
-//       holders.map((holder) => smartContract.methods.stakedTokens(holder).call())
-//     ),
-//     to: contractAddress,
-//   };
-
-//   console.log(amount, amount.substring(0, amount.length));
-
-//   try {
-//     const txHash = await window.ethereum.request({
-//       method: "eth_sendTransaction",
-//       params: [transactionParameters],
-//     });
-//     return {
-//       status: (
-//         <span>
-//           ✅{" "}
-//           <a
-//             target="_blank"
-//             rel="noreferrer"
-//             href={`https://goerli.etherscan.io/tx/${txHash}`}
-//           >
-//             View the status of your transaction on Etherscan!
-//           </a>
-//         </span>
-//       ),
-//     };
-//   } catch (error) {
-//     return {
-//       status: "😥 " + error.message,
-//     };
-//   }
+// export const options = {
+//   title: "My Daily camembert!",
+//   is3D: true,
 // };
+
+// export function Inter() {
+//   return (
+//     <Chart
+//       chartType="PieChart"
+//       data={data}
+//       options={options}
+//       width={"100%"}
+//       height={"400px"}
+//     />
+//   );
+// }
